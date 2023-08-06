@@ -153,7 +153,7 @@ void Module::Interface::RegisterDisconnectEvent(Kernel::HLERequestContext& ctx) 
 
 void Module::Interface::GetConnectingProxyEnable(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx);
-    bool proxy_enabled = false;
+    constexpr bool proxy_enabled = false;
 
     IPC::RequestBuilder rb = rp.MakeBuilder(2, 0);
     rb.Push(RESULT_SUCCESS);
