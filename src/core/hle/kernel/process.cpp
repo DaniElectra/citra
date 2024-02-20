@@ -22,6 +22,7 @@
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/vm_manager.h"
+#include "core/hle/service/apt/apt.h"
 #include "core/hle/service/plgldr/plgldr.h"
 #include "core/loader/loader.h"
 #include "core/memory.h"
@@ -264,6 +265,12 @@ void Process::Exit() {
     auto plgldr = Service::PLGLDR::GetService(Core::System::GetInstance());
     if (plgldr) {
         plgldr->OnProcessExit(*this, kernel);
+    }
+
+    auto apt = Service::APT::GetModule(Core::System::GetInstance());
+    if (apt) {
+        auto applet_manager = apt->GetAppletManager();
+        applet_manager->OnProcessExit(*this);
     }
 }
 

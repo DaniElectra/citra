@@ -262,6 +262,8 @@ public:
 
     void ReloadInputDevices();
 
+    void OnProcessExit(Kernel::Process& process);
+
     /**
      * Clears any existing parameter and places a new one. This function is currently only used by
      * HLE Applets and should be likely removed in the future
@@ -507,6 +509,8 @@ private:
     AppletSlot GetAppletSlotFromId(AppletId id);
     AppletSlot GetAppletSlotFromAttributes(AppletAttributes attributes);
     AppletSlot GetAppletSlotFromPos(AppletPos pos);
+
+    AppletSlotData* GetAppletSlotDataFromTitleId(const u64 title_id);
 
     /// Checks if the Application slot has already been registered and sends the parameter to it,
     /// otherwise it queues for sending when the application registers itself with APT::Enable.

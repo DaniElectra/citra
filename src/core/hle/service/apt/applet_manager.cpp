@@ -222,6 +222,33 @@ AppletManager::AppletSlot AppletManager::GetAppletSlotFromPos(AppletPos pos) {
     return GetAppletSlotFromId(applet_id);
 }
 
+AppletManager::AppletSlotData* AppletManager::GetAppletSlotDataFromTitleId(const u64 title_id) {
+    return std::find_if(applet_slots.begin(), applet_slots.end(),
+                        [title_id](const AppletManager::AppletSlotData& slot_data) {
+                            return slot_data.title_id == title_id;
+                        });
+}
+
+void AppletManager::OnProcessExit(Kernel::Process& process) {
+    const auto slot_data = GetAppletSlotDataFromTitleId(process.codeset->program_id);
+    if (!slot_data) {
+        return;
+    }
+
+    slot_data->Reset();
+
+    auto inactive = active_slot == AppletSlot::Error;
+    if (!inactive) {
+        auto active_slot_data = GetAppletSlot(active_slot);
+        inactive = active_slot_data->applet_id == AppletId::None ||
+                   active_slot_data->attributes.applet_pos.Value() == AppletPos::Invalid;
+    }
+
+    if (inactive) {
+        active_slot = GetAppletSlotFromPos(AppletPos::System);
+    }
+}
+
 void AppletManager::CancelAndSendParameter(const MessageParameter& parameter) {
     LOG_DEBUG(
         Service_APT, "Sending parameter from {:03X} to {:03X} with signal {:08X} and size {:08X}",
@@ -790,13 +817,6 @@ Result AppletManager::StartSystemApplet(AppletId applet_id, std::shared_ptr<Kern
     if (last_system_launcher_slot != AppletSlot::Error) {
         const auto slot_data = GetAppletSlot(last_system_launcher_slot);
         source_applet_id = slot_data->applet_id;
-
-        // If a system applet is launching another system applet, reset the slot to avoid conflicts.
-        // This is needed because system applets won't necessarily call CloseSystemApplet before
-        // exiting.
-        if (last_system_launcher_slot == AppletSlot::SystemApplet) {
-            slot_data->Reset();
-        }
     }
 
     // If a system applet is not already registered, it is started by APT.
